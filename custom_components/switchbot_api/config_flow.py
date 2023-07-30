@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from switchbot import SwitchBot
+from .switchbotapi import SwitchBot
 import voluptuous as vol
 
 from homeassistant import config_entries

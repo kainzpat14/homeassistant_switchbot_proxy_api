@@ -2,7 +2,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from switchbot import SwitchBot
+from .switchbotapi import SwitchBot
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry

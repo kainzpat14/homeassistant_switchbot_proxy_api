@@ -1,7 +1,7 @@
 """The switchbot_api integration."""
 from __future__ import annotations
 
-from switchbot import SwitchBot
+from .switchbotapi import SwitchBot
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform

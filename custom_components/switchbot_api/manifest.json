@@ -8,7 +8,7 @@
   "homekit": {},
   "integration_type": "hub",
   "iot_class": "local_polling",
-  "requirements": ["python-switchbot==2.3.1"],
+  "requirements": [],
   "ssdp": [],
   "zeroconf": [],
   "version": "0.0.1"
