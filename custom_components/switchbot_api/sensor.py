@@ -42,7 +42,7 @@ async def setup_platform(
             add_entities(
                 [
                     SwitchbotTemperatureSensor(
-                        switchbot, device["device_id"], device["device_name"]
+                        switchbot, device["device_id"], device["device_name"], devices.__len__()*2
                     )
                 ],
                 True,
@@ -50,64 +50,82 @@ async def setup_platform(
             add_entities(
                 [
                     SwitchbotHumiditySensor(
-                        switchbot, device["device_id"], device["device_name"]
+                        switchbot, device["device_id"], device["device_name"], devices.__len__()*2
                     )
                 ],
                 True,
             )
 
 
-class SwitchbotTemperatureSensor(SensorEntity):
-    """Representation of a Switchbot API temperature sensor."""
-
+class SwitchbotSensor(SensorEntity):
+    """Base class for switchbot sensors."""
+    
     _attr_has_entity_name = True
+    lastUpdated : datetime | None = None 
+    requestTimeout : int = 10
 
-    def __init__(self, switchbot, device_id, device_name) -> None:
+    def __init__(self, switchbot, device_id, device_name, number_of_devices, device_prefix) -> None:
         """Initialize the sensor."""
+        self.number_of_devices = number_of_devices
         self._attr_name = device_name
-        self._attr_unique_id = "switchbot_temperature_" + device_id
+        self._attr_unique_id = device_prefix + device_id
         self._attr_native_value = 0
         self.switchbot = switchbot
         self.device_id = device_id
+
+        #switchbot allows 10000 requests per day, so we need an apprioriate timeout
+        requests = self.number_of_devices + 1
+        updatesPerDay = 10000 / requests
+        self.requestTimeout = 86400 / updatesPerDay
 
     @property
     def native_value(self) -> StateType | date | datetime | Decimal:
         """Return the state of the sensor."""
         return self._attr_native_value
+    
+    def update(self) -> None:
+        """Fetch new state data for the sensor."""
+        try:
+            if self.lastUpdated is not None and (datetime.now() - self.lastUpdated).seconds < self.requestTimeout:
+                return
+            response = self.switchbot.client.get("devices/" + self.device_id + "/status")
+            self._attr_native_value = self.extractValueFromResponse(response)
+            self.lastUpdated = datetime.now()
+        except RuntimeError as err:
+            if "daily limit" in str(err):
+                return
+            raise err
+        
+    def extractValueFromResponse(self, response):
+        pass
+
+class SwitchbotTemperatureSensor(SwitchbotSensor):
+    """Representation of a Switchbot API temperature sensor."""
+
+    def __init__(self, switchbot, device_id, device_name, number_of_devices) -> None:
+        """Initialize the sensor."""
+        super().__init__(switchbot, device_id, device_name, number_of_devices, "switchbot_temperature_")
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement."""
         return "°C"
 
-    def update(self) -> None:
-        """Fetch new state data for the sensor."""
-        response = self.switchbot.client.get("devices/" + self.device_id + "/status")
-        self._attr_native_value = response["body"]["temperature"]
-
     @property
     def device_class(self) -> SensorDeviceClass | None:
         """Return the device class of the sensor."""
         return SensorDeviceClass.TEMPERATURE
+    
+    def extractValueFromResponse(self, response):
+        return response["body"]["temperature"]
 
 
-class SwitchbotHumiditySensor(SensorEntity):
+class SwitchbotHumiditySensor(SwitchbotSensor):
     """Representation of a Switchbot API humidity sensor."""
 
-    _attr_has_entity_name = True
-
-    def __init__(self, switchbot, device_id, device_name) -> None:
+    def __init__(self, switchbot, device_id, device_name,number_of_devices) -> None:
         """Initialize the sensor."""
-        self._attr_name = device_name
-        self._attr_unique_id = "switchbot_humidity_" + device_id
-        self._attr_native_value = 0
-        self.switchbot = switchbot
-        self.device_id = device_id
-
-    @property
-    def native_value(self) -> StateType | date | datetime | Decimal:
-        """Return the state of the sensor."""
-        return self._attr_native_value
+        super().__init__(switchbot, device_id, device_name, number_of_devices, "switchbot_humidity_")
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -118,8 +136,6 @@ class SwitchbotHumiditySensor(SensorEntity):
     def device_class(self) -> SensorDeviceClass | None:
         """Return the device class of the sensor."""
         return SensorDeviceClass.HUMIDITY
-
-    def update(self) -> None:
-        """Fetch new state data for the sensor."""
-        response = self.switchbot.client.get("devices/" + self.device_id + "/status")
-        self._attr_native_value = response["body"]["humidity"]
+        
+    def extractValueFromResponse(self, response):
+        return response["body"]["humidity"]    
