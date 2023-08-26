@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
-from switchbot_proxy_client import SwitchbotProxyClient
+from .switchbot_proxy_client import SwitchbotProxyClient
 
 # For your initial PR, limit it to 1 platform.
 PLATFORMS: list[Platform] = [Platform.SENSOR]

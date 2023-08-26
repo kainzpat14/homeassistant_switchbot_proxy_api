@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from switchbot_api_proxy import SwitchbotProxyClient
+from .switchbot_proxy_client import SwitchbotProxyClient
 
 import voluptuous as vol
 
