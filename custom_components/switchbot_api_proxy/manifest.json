@@ -1,0 +1,15 @@
+{
+  "domain": "switchbot_api_proxy",
+  "name": "SwitchBot API Proxy",
+  "codeowners": ["@kainzpat14"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/switchbot_api_proxy",
+  "homekit": {},
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "requirements": ["requests>=0.0.0"],
+  "ssdp": [],
+  "zeroconf": [],
+  "version": "0.0.1"
+}
